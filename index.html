@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>M-SAPE</title>
+    <style>
+      :root {
+        --bg: #f2f4f6;
+        --surface: #ffffff;
+        --ink: #16222e;
+        --muted: #5d6b79;
+        --line: #dde2e7;
+        --track: #e8ecef;
+        --out: #c2410c;
+        --in: #15803d;
+        --err: #b91c1c;
+        --btn-ink: #ffffff;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #11161b;
+          --surface: #1a2128;
+          --ink: #e7ecf0;
+          --muted: #95a3b0;
+          --line: #2a343d;
+          --track: #26303a;
+          --out: #f08a5d;
+          --in: #4ade80;
+          --err: #f87171;
+          --btn-ink: #11161b;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #11161b;
+        --surface: #1a2128;
+        --ink: #e7ecf0;
+        --muted: #95a3b0;
+        --line: #2a343d;
+        --track: #26303a;
+        --out: #f08a5d;
+        --in: #4ade80;
+        --err: #f87171;
+        --btn-ink: #11161b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.4;
+      }
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 36px 20px 64px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.5rem;
+      }
+      .lead {
+        margin: 0 0 20px;
+        color: var(--muted);
+        max-width: 62ch;
+      }
+      .upload {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 20px;
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        align-items: end;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+      .field > span {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .drop {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 1.5px dashed var(--line);
+        border-radius: 8px;
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .drop:hover,
+      .drop:focus-within {
+        border-color: var(--out);
+      }
+      .drop input {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+      }
+      input[type="password"],
+      input[type="text"] {
+        height: 44px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--ink);
+        font: inherit;
+        width: 100%;
+      }
+      input:focus-visible,
+      button:focus-visible {
+        outline: 2px solid var(--out);
+        outline-offset: 2px;
+      }
+      button {
+        height: 44px;
+        padding: 0 24px;
+        border: 0;
+        border-radius: 8px;
+        font: inherit;
+        font-weight: 600;
+        background: var(--ink);
+        color: var(--bg);
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .status {
+        grid-column: 1 / -1;
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .status.error {
+        color: var(--err);
+      }
+      .facts {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin-top: 24px;
+      }
+      .fact {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px 20px;
+      }
+      .fact span {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .fact strong {
+        display: block;
+        font-size: 1.15rem;
+        margin-top: 2px;
+        overflow-wrap: anywhere;
+      }
+      .block {
+        margin-top: 40px;
+        --accent: var(--out);
+      }
+      .block.in {
+        --accent: var(--in);
+      }
+      .bhead h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .total {
+        font-size: clamp(2.2rem, 6vw, 3.8rem);
+        font-weight: 700;
+        color: var(--accent);
+        letter-spacing: -0.02em;
+        margin: 2px 0 0;
+      }
+      .total span {
+        font-size: 0.4em;
+        font-weight: 500;
+        color: var(--muted);
+        margin-right: 8px;
+      }
+      .meta {
+        color: var(--muted);
+        margin: 2px 0 18px;
+      }
+      .grid {
+        display: grid;
+        gap: 20px;
+        align-items: start;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+      details {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 18px 22px;
+        font-weight: 600;
+        font-size: 1.02rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 10px;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary::after {
+        content: "+";
+        color: var(--accent);
+        font-size: 1.4rem;
+        line-height: 1;
+      }
+      details[open] > summary::after {
+        content: "\2013";
+      }
+      summary:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+      }
+      ol {
+        list-style: none;
+        margin: 0;
+        padding: 4px 22px 20px;
+        display: grid;
+        gap: 12px;
+        max-height: 460px;
+        overflow-y: auto;
+      }
+      .line {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: baseline;
+      }
+      .name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .val {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      small {
+        color: var(--muted);
+        font-weight: 400;
+        margin-left: 4px;
+      }
+      .empty {
+        color: var(--muted);
+        margin: 0;
+        padding: 4px 22px 20px;
+      }
+      footer {
+        margin-top: 56px;
+        padding-top: 24px;
+        border-top: 1px solid var(--line);
+        max-width: 420px;
+      }
+      .tea {
+        padding: 0 22px 22px;
+        display: grid;
+        gap: 12px;
+        justify-items: start;
+      }
+      .tea p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .till {
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        user-select: all;
+      }
+      #qr {
+        width: 200px;
+        background: #ffffff;
+        padding: 14px;
+        border-radius: 8px;
+      }
+      #qr svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      @media (max-width: 720px) {
+        .upload {
+          grid-template-columns: 1fr;
+        }
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>M-SAPE</h1>
+      <p class="lead">
+        Upload your statement to see where your money went and where it came
+        from. The file is read in your browser and is never sent anywhere.
+      </p>
+
+      <div class="upload">
+        <label class="field">
+          <span>Statement file (.csv or .pdf)</span>
+          <span class="drop" id="dropText">Choose a file</span>
+          <input type="file" id="file" accept=".csv,.pdf" />
+        </label>
+        <label class="field">
+          <span>File password (PDF only)</span>
+          <input
+            type="password"
+            id="pw"
+            autocomplete="off"
+            placeholder="Leave empty for CSV"
+          />
+        </label>
+        <label class="field">
+          <span>Account holder name (optional)</span>
+          <input
+            type="text"
+            id="holder"
+            autocomplete="off"
+            placeholder="Read from PDF, or type it"
+          />
+        </label>
+        <button id="go" disabled>Continue</button>
+        <p class="status" id="status">
+          Choose your statement and select Continue to see your results.
+        </p>
+      </div>
+
+      <div id="summary"></div>
+      <div id="report"></div>
+
+      <footer></footer>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"]/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+        );
+      const fmt = (n) =>
+        n.toLocaleString("en-KE", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      const num = (v) => {
+        const n = parseFloat(String(v || "").replace(/,/g, ""));
+        return isNaN(n) ? 0 : n;
+      };
+      const pretty = (s) =>
+        s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+
+      function activityOf(t) {
+        if (/Charge/i.test(t)) return "Transaction Charge";
+        if (/Funds received/i.test(t)) return "Funds Received";
+        if (/Merchant Payment/i.test(t)) return "Buy Goods and Services";
+        if (/Customer Payment/i.test(t)) return "Pochi";
+        if (/Customer Transfer/i.test(t)) return "Send Money";
+        if (/Customer Withdrawal/i.test(t)) return "Agent Withdrawal";
+        if (/Pay ?Bill/i.test(t)) return "Paybill";
+        if (/Airtime|Bundle/i.test(t)) return "Airtime";
+        if (/Deposit/i.test(t)) return "Deposit";
+        return "Other";
+      }
+
+      function nameOf(t, act) {
+        if (act === "Transaction Charge") return null;
+        const m = t.split(/\b(?:receive|account|acc)\b/i)[0];
+        const k = m.search(/\b(?:to|from|at)\b/i);
+        if (k < 0) return null;
+        let s = m
+          .slice(k)
+          .replace(/^\w+\s*/, "")
+          .replace(/^\s*-\s*/, "");
+        if (s.includes(" - ")) s = s.split(" - ").slice(1).join(" - ");
+        s = s.replace(/^[\d*\s-]+/, "");
+        const n = s.match(/[A-Za-z][A-Za-z\s'.&-]*/);
+        return n ? n[0].trim().replace(/\s+/g, " ") : null;
+      }
+
+      function parseDate(s) {
+        s = String(s || "");
+        let m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+        m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+        return null;
+      }
+
+      function parseCSV(text) {
+        const rows = [];
+        let row = [],
+          f = "",
+          q = false;
+        for (let i = 0; i < text.length; i++) {
+          const c = text[i];
+          if (q) {
+            if (c === '"') {
+              if (text[i + 1] === '"') {
+                f += '"';
+                i++;
+              } else q = false;
+            } else f += c;
+          } else if (c === '"') q = true;
+          else if (c === ",") {
+            row.push(f);
+            f = "";
+          } else if (c === "\n") {
+            row.push(f);
+            rows.push(row);
+            row = [];
+            f = "";
+          } else if (c !== "\r") f += c;
+        }
+        if (f || row.length) {
+          row.push(f);
+          rows.push(row);
+        }
+        return rows;
+      }
+
+      function txFromCSV(text) {
+        const r = parseCSV(text.replace(/^\uFEFF/, ""));
+        const h = r[0].map((x) => x.trim().toLowerCase());
+        const di = h.indexOf("details"),
+          pi = h.indexOf("paid in"),
+          wi = h.indexOf("withdrawn");
+        if (di < 0 || pi < 0 || wi < 0)
+          throw new Error(
+            "This CSV needs the columns Details, Paid In and Withdrawn.",
+          );
+        const ti = h.findIndex((x) => /time|date/.test(x));
+        const hm = text.match(/Customer Name\s*:?,*\s*"?([^",\n]+)/i);
+        const txs = r
+          .slice(1)
+          .filter((x) => x.length > di)
+          .map((x) => ({
+            details: x[di],
+            inn: num(x[pi]),
+            out: num(x[wi]),
+            time: ti >= 0 ? parseDate(x[ti]) : null,
+          }));
+        return { txs, holder: hm ? hm[1].trim() : null };
+      }
+
+      async function txFromPDF(buf, pw) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        const pdf = await pdfjsLib.getDocument({ data: buf, password: pw })
+          .promise;
+        let text = "";
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const c = await (await pdf.getPage(p)).getTextContent();
+          const lines = {};
+          c.items.forEach((it) => {
+            const y = Math.round(it.transform[5] / 3);
+            (lines[y] = lines[y] || []).push(it);
+          });
+          Object.keys(lines)
+            .map(Number)
+            .sort((a, b) => b - a)
+            .forEach((y) => {
+              text +=
+                lines[y]
+                  .sort((a, b) => a.transform[4] - b.transform[4])
+                  .map((i) => i.str)
+                  .join(" ") + "\n";
+            });
+        }
+        text = text.replace(/\s+/g, " ");
+        const re =
+          /^[A-Z0-9]{10} (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (.*?) Completed\s+([\d,]+\.\d{2})/;
+        const isIn =
+          /received|deposit|reversal|refund|salary|promotion|bonus|from\s*-/i;
+        const hm = text.match(
+          /Customer Name\s*:?\s*(.+?)\s+(?:Mobile|Phone|Email|Customer|Statement|Date|ID|Receipt)/i,
+        );
+        const txs = text
+          .split(/(?=\b[A-Z0-9]{10} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/)
+          .map((ch) => {
+            const m = ch.match(re);
+            if (!m) return null;
+            const amt = num(m[3]);
+            const time = parseDate(m[1]);
+            return isIn.test(m[2])
+              ? { details: m[2], inn: amt, out: 0, time }
+              : { details: m[2], inn: 0, out: amt, time };
+          })
+          .filter(Boolean);
+        return { txs, holder: hm ? hm[1].trim() : null };
+      }
+
+      function summarise(txs) {
+        const people = {},
+          acts = {};
+        let total = 0;
+        txs.forEach((t) => {
+          total += t.amt;
+          const act = activityOf(t.details);
+          const a = (acts[act] = acts[act] || { total: 0, count: 0 });
+          a.total += t.amt;
+          a.count++;
+          if (act === "Transaction Charge") return;
+          const nm = nameOf(t.details, act) || act;
+          const p = (people[nm.toUpperCase()] = people[nm.toUpperCase()] || {
+            name: pretty(nm),
+            total: 0,
+            count: 0,
+          });
+          p.total += t.amt;
+          p.count++;
+        });
+        const pl = Object.values(people);
+        return {
+          total,
+          n: txs.length,
+          byAmt: [...pl].sort((a, b) => b.total - a.total),
+          byCnt: [...pl].sort((a, b) => b.count - a.count || b.total - a.total),
+          byAct: Object.entries(acts)
+            .map(([name, v]) => ({ name, ...v }))
+            .sort((a, b) => b.total - a.total),
+        };
+      }
+
+      function list(items, key, label) {
+        if (!items.length) return '<p class="empty">No transactions.</p>';
+        return (
+          "<ol>" +
+          items
+            .map(
+              (i) =>
+                `<li class="line"><span class="name">${esc(i.name)}</span><span class="val">${label(i)}</span></li>`,
+            )
+            .join("") +
+          "</ol>"
+        );
+      }
+
+      function block(title, cls, s) {
+        return (
+          `<div class="block ${cls}"><div class="bhead"><h2>${title}</h2>` +
+          `<p class="total"><span>KES</span>${fmt(s.total)}</p>` +
+          `<p class="meta">${s.n.toLocaleString()} transactions${cls === "out" ? ", including charges" : ""}</p></div>` +
+          `<div class="grid">` +
+          `<details><summary>By amount</summary>${list(s.byAmt, "total", (i) => fmt(i.total))}</details>` +
+          `<details><summary>By appearance count</summary>${list(s.byCnt, "count", (i) => i.count + " times")}</details>` +
+          `<details><summary>By activity</summary>${list(s.byAct, "total", (i) => fmt(i.total) + `<small>${i.count} txns</small>`)}</details>` +
+          `</div></div>`
+        );
+      }
+
+      function renderSummary(txs, meta) {
+        const dates = txs
+          .map((t) => t.time)
+          .filter(Boolean)
+          .sort((a, b) => a - b);
+        let start = dates[0],
+          end = dates[dates.length - 1];
+        if (!start && meta.fileName) {
+          const m = meta.fileName.match(
+            /(\d{4}-\d{2}-\d{2})_to_(\d{4}-\d{2}-\d{2})/,
+          );
+          if (m) {
+            start = parseDate(m[1]);
+            end = parseDate(m[2]);
+          }
+        }
+        const dfmt = (d) =>
+          d.toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
+        let period = "Not found in file",
+          dur = "Not found in file";
+        if (start && end) {
+          const days = Math.round((end - start) / 864e5);
+          const months = Math.round((days / 30.4375) * 10) / 10;
+          period = `${dfmt(start)} to ${dfmt(end)}`;
+          dur = `${months} month${months === 1 ? "" : "s"}<small>${days.toLocaleString()} days</small>`;
+        }
+        $("#summary").innerHTML =
+          `<div class="facts">` +
+          `<div class="fact"><span>Account holder</span><strong>${esc(meta.holder || "Not found in file")}</strong></div>` +
+          `<div class="fact"><span>Transactions from</span><strong>${period}</strong></div>` +
+          `<div class="fact"><span>Months covered</span><strong>${dur}</strong></div></div>`;
+      }
+
+      function render(txs, meta) {
+        const out = txs
+          .filter((t) => t.out > 0)
+          .map((t) => ({ details: t.details, amt: t.out }));
+        const inn = txs
+          .filter((t) => t.inn > 0)
+          .map((t) => ({ details: t.details, amt: t.inn }));
+        renderSummary(txs, meta);
+        $("#report").innerHTML =
+          block("Money out", "out", summarise(out)) +
+          block("Money in", "in", summarise(inn));
+      }
+
+      function sampleData() {
+        const d = [];
+        const add = (details, amt, times, dir) => {
+          for (let i = 0; i < times; i++)
+            d.push({
+              details,
+              inn: dir === "in" ? amt + (i % 5) * 50 : 0,
+              out: dir === "out" ? amt + (i % 5) * 50 : 0,
+            });
+        };
+        add("Customer Transfer to - 2547*****123 JANE WANJIRU", 900, 41, "out");
+        add("Customer Transfer to - 2547*****884 BRIAN OTIENO", 700, 24, "out");
+        add("Customer Transfer to - 2547*****310 MARY ACHIENG", 500, 19, "out");
+        add("Customer Transfer to - 2547*****772 PETER KAMAU", 400, 17, "out");
+        add(
+          "Merchant Payment Online to 5320111 - NAIVAS WESTLANDS",
+          650,
+          64,
+          "out",
+        );
+        add("Merchant Payment Online to 5320222 - QUICKMART", 480, 33, "out");
+        add("Pay Bill to 888880 - KENYA POWER", 2400, 14, "out");
+        add("Pay Bill to 150501 - SAFARICOM HOME FIBRE", 3000, 10, "out");
+        add(
+          "Customer Withdrawal At Agent Till 654321 - JOHN AGENT",
+          1800,
+          12,
+          "out",
+        );
+        add(
+          "Airtime Purchase to 2547*****111 - SAFARICOM AIRTIME",
+          100,
+          52,
+          "out",
+        );
+        add("Customer Transfer of Funds Charge", 15, 140, "out");
+        add("Funds received from - 2547*****456 SAMUEL KIPROP", 5200, 22, "in");
+        add("Funds received from - 2547*****678 ACME LIMITED", 31000, 9, "in");
+        add("Funds received from - 2547*****990 GRACE MUTHONI", 1500, 31, "in");
+        add("Funds received from - 2547*****205 DAVID NJOROGE", 800, 18, "in");
+        add(
+          "Deposit of Funds at Agent Till 654321 - JOHN AGENT",
+          4000,
+          11,
+          "in",
+        );
+        return d;
+      }
+
+      const fileEl = $("#file"),
+        pwEl = $("#pw"),
+        goEl = $("#go"),
+        statusEl = $("#status");
+      const say = (msg, err) => {
+        statusEl.textContent = msg;
+        statusEl.className = "status" + (err ? " error" : "");
+      };
+
+      fileEl.addEventListener("change", () => {
+        const f = fileEl.files[0];
+        $("#dropText").textContent = f ? f.name : "Choose a file";
+        goEl.disabled = !f;
+      });
+
+      goEl.addEventListener("click", async () => {
+        const f = fileEl.files[0];
+        if (!f) return;
+        goEl.disabled = true;
+        say("Reading your statement…");
+        try {
+          const res = /\.pdf$/i.test(f.name)
+            ? await txFromPDF(await f.arrayBuffer(), pwEl.value)
+            : txFromCSV(await f.text());
+          const txs = res.txs;
+          if (!txs.length)
+            throw new Error("No completed transactions found in this file.");
+          render(txs, {
+            holder: $("#holder").value.trim() || res.holder,
+            fileName: f.name,
+          });
+          say(
+            `Loaded ${txs.length.toLocaleString()} transactions from ${f.name}.`,
+          );
+        } catch (e) {
+          if (e && e.name === "PasswordException")
+            say(
+              e.code === 2
+                ? "That password is incorrect. Check it and try again."
+                : "This PDF is locked. Enter its password and select Continue.",
+              true,
+            );
+          else say(e.message || "Could not read this file.", true);
+        }
+        goEl.disabled = false;
+      });
+
+      $("#report").innerHTML =
+        '<p class="empty" style="padding:40px 0 0">Your Money out and Money in reports will appear here once you upload a statement.</p>';
+
+      try {
+        const qr = qrcode(0, "M");
+        qr.addData("1606231");
+        qr.make();
+        $("#qr").innerHTML = qr.createSvgTag({
+          cellSize: 6,
+          margin: 0,
+          scalable: true,
+        });
+      } catch (e) {
+        $("#qr").textContent = ".";
+      }
+    </script>
+  </body>
+</html>
